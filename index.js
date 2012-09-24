@@ -73,6 +73,9 @@ function emit() {
 }
 
 function RFCDate(date) {
+    if (typeof date === 'string') {
+        date = new Date(date);
+    }
     if (date) {
         var day = date.getDate();
         var month = date.getMonth() + 1;
