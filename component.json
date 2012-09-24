@@ -1,0 +1,15 @@
+{
+  "name": "editable-date",
+  "repo": "componitable/editable-date",
+  "description": "Inline editable date fields",
+  "version": "0.0.1",
+  "keywords": [],
+  "dependencies": {
+    "component/emitter": "*",
+    "componitable/editable": "*"
+  },
+  "development": {},
+  "scripts": [
+    "index.js"
+  ]
+}
