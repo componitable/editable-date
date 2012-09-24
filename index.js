@@ -5,10 +5,14 @@ module.exports = makeEditable;
 function makeEditable(elements, options) {
     options = options || {};
     options.displayFormat = options.displayFormat || function (date) {
-        return date.toDateString();
+        if (date)
+            return date.toDateString();
+        else
+            return '';
     };
-    options.updateFormat = options.updateFormat || function (date) {
-        return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+    options.updateFormat = options.updateFormat || RFCDate;
+    options.parseDate = options.parseDate || function (dateString) {
+        return dateString ? new Date(dateString) : null;
     };
     editable.click(elements, function (element) {
         if (element.getAttribute('data-in-edit-mode') == 'true') return;
@@ -25,11 +29,11 @@ function edit(element, options) {
         dimensions = editable.dimensions(element);
     }
     emit('pre-begin-edit', element);
-    var value = element.textContent;
+    var value = options.parseDate(element.textContent.trim());
     element.innerHTML = '';
     var edit = document.createElement('input');
     edit.type = "date";
-    edit.value = value;
+    edit.value = RFCDate(value);
     element.appendChild(edit);
     if (options.maintainSize === true) {
         var editDimensions = editable.transformDimensions(edit, dimensions);
@@ -42,18 +46,20 @@ function edit(element, options) {
     edit.focus();
     editable.blur(edit, function () {
         if (element.getAttribute('data-in-edit-mode') != 'true') return;
-        if (!Date.parse(edit.value)) {
-            edit.focus();
+        if (!Date.parse(edit.value) && edit.value !== '') {
+            setTimeout(function () {
+                edit.focus();
+            }, 10);
             //todo: display validation error
             return;
         }
         element.setAttribute('data-in-edit-mode', 'false');
         emit('pre-end-edit', element);
-        var newVal = new Date(edit.value);
+        var newVal = edit.value ? new Date(edit.value) : null;
         element.innerHTML = options.displayFormat(newVal);
         element.style.width = oldStyle.width;
         element.style.height = oldStyle.height;
-        if (value != edit.value) {
+        if (RFCDate(value) != RFCDate(edit.value)) {
             emit('update', element, options.updateFormat(newVal));
         }
         emit('post-end-edit', element);
@@ -64,4 +70,27 @@ function edit(element, options) {
 function emit() {
     module.exports.emit.apply(module.exports, arguments);
     editable.emit.apply(editable, arguments);
+}
+
+function RFCDate(date) {
+    if (date) {
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+
+        if (day < 10) {
+            day = '0' + day;
+        }
+        if (month < 10) {
+            month = '0' + month;
+        }
+        if (year < 1000) {
+            throw new Error('Does\'t support dates that old');
+        }
+
+        return year + '-' + month + '-' + day;
+    } else {
+        return null;
+    }
+    
 }
