@@ -57,8 +57,10 @@ function edit(element, options) {
         emit('pre-end-edit', element);
         var newVal = edit.value ? new Date(edit.value) : null;
         element.innerHTML = options.displayFormat(newVal);
-        element.style.width = oldStyle.width;
-        element.style.height = oldStyle.height;
+        if (options.maintainSize === true) {
+            element.style.width = oldStyle.width;
+            element.style.height = oldStyle.height;
+        }
         if (RFCDate(value) != RFCDate(edit.value)) {
             emit('update', element, options.updateFormat(newVal));
         }
